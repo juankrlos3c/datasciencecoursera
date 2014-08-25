@@ -8,12 +8,11 @@
 #4.Appropriately labels the data set with descriptive variable names. 
 #5.Creates a second, independent tidy data set with the average of each variable for each activity and each subject. 
 
-setwd('C:/Users/JuanCarlos/Documents/data/getdata_projectfiles_UCI HAR Dataset/UCI HAR Dataset')
+#setwd('Local folder with data')
 
 # load libraries
-library(reshape)
 library(plyr)
-
+library(reshape)
 
 # give them headings, and turn the numeric activities into something easier to read
 xTr = read.table("./train/X_train.txt")
@@ -27,9 +26,6 @@ subTest = read.table("./test/subject_test.txt")
 
 
 ## Format x datasets (xTr and xTest)
-
-# format variable names
-# load headings from file
 featuresdf = read.table("./features.txt")
 headings = featuresdf$V2
 
@@ -37,14 +33,11 @@ headings = featuresdf$V2
 colnames(xTr) = headings
 colnames(xTest) = headings
 
-
 ### format y dataset (yTest and yTr)
-# change V1 variable to something descriptive "activity"
 yTest <- rename(yTest, c(V1="activity"))
 yTr <- rename(yTr, c(V1="activity"))
 
 # change data values in yTest according to activity_labels.txt file
-# there are 6 activities
 activitydf  = read.table("./activity_labels.txt")
 
 # convert variable names to lowercase
@@ -61,20 +54,14 @@ yTest$activity = factor(
     labels = activityLabels
 )
 
-
 ### Format subject variables (subject_train subject_test)
-# change subject variable name to be descriptive
 subTr <- rename(subTr, c(V1="subjectid"))
 subTest <- rename(subTest, c(V1="subjectid"))
 
 
 ### Merge the training and the test sets to create one data set.
-
-# combine (x,y,subject) for the training and test sets
 train = cbind(xTr, subTr, yTr)
 test = cbind(xTest, subTest, yTest)
-
-# combine train and test set
 fullData = rbind(train, test)
 
 
@@ -86,13 +73,7 @@ pattern = "mean|std|subjectid|activity"
 tidyData = fullData[,grep(pattern , names(fullData), value=TRUE)]
 
 # tidy up variable names
-# Don't use underscores ( _ ) or hyphens ( - ) in identifiers
-# remove parentheses, dash, commas
 cleanNames = gsub("\\(|\\)|-|,", "", names(tidyData))
 names(tidyData) <- tolower(cleanNames)
-
-# summarize data
 result = ddply(tidyData, .(activity, subjectid), numcolwise(mean))
-
-# write file to output
 write.table(result, file="data.txt", sep = "\t", append=F)
